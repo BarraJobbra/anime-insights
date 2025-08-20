@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Barry — Anime Insights (Link in Bio)</title>
+<meta name="description" content="Barry's link-in-bio with quick anime insights: JJK, Naruto, Dragon Ball & more. Download JSON/Markdown for characters, series, or filtered lists." />
+<style>
+/* ================================
+   Barry — Anime Insights (single file)
+   How to customize:
+   1) Change PROFILE + SOCIALS in the JS section at the bottom.
+   2) Add more anime/characters in the db constant (search for // DB START).
+   3) Colors/branding: tweak CSS variables below.
+   ================================= */
+:root{
+  --bg: #0b0c10;
+  --panel:#111217;
+  --text:#e8e8ee;
+  --muted:#a6a8b1;
+  --accent:#8b5cf6; /* violet vibe */
+  --accent-2:#22d3ee; /* cyan pop */
+  --card:#141622;
+  --card-hover:#181b2a;
+  --border:#23253a;
+  --chip:#1b1e2d;
+  --success:#10b981;
+  --warning:#f59e0b;
+  --danger:#ef4444;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+.light{
+  --bg:#f6f7fb; --panel:#ffffff; --text:#12131a; --muted:#5a6171;
+  --accent:#7c3aed; --accent-2:#0891b2;
+  --card:#ffffff; --card-hover:#f3f4f8; --border:#e6e7ee; --chip:#eef0f9; --shadow:0 12px 30px rgba(10,10,30,.08);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  background: radial-gradient(1200px 600px at 80% -10%, rgba(139,92,246,.14), transparent 60%),
+              radial-gradient(800px 400px at -10% 120%, rgba(34,211,238,.10), transparent 60%),
+              var(--bg);
+  color:var(--text);
+}
+.container{max-width:1100px;margin:0 auto;padding:22px}
+.header{
+  display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px
+}
+.brand{
+  display:flex;gap:14px;align-items:center
+}
+.avatar{
+  width:64px;height:64px;border-radius:18px;background:
+    conic-gradient(from 200deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow);
+  display:grid;place-items:center;color:white;font-weight:700
+}
+.avatar span{font-size:26px;filter:drop-shadow(0 3px 10px rgba(0,0,0,.25))}
+.title h1{margin:0;font-size:22px;letter-spacing:.2px}
+.title p{margin:3px 0 0;color:var(--muted);font-size:14px}
+
+.tools{display:flex;gap:10px;flex-wrap:wrap}
+.button{
+  appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--text);
+  padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600;
+  box-shadow: var(--shadow);transition:transform .08s ease, background .2s ease, border-color .2s ease;
+}
+.button:hover{transform:translateY(-1px);background:var(--card-hover)}
+.button.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;color:white}
+.button.ghost{background:transparent}
+.badge{padding:4px 8px;border-radius:999px;background:var(--chip);border:1px solid var(--border);color:var(--muted);font-size:12px}
+
+.bio{
+  background:var(--panel);border:1px solid var(--border);padding:14px 14px;border-radius:16px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow: var(--shadow);margin-bottom:12px
+}
+.links{display:flex;gap:10px;flex-wrap:wrap}
+.linkbtn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--border);text-decoration:none;color:var(--text);
+  font-weight:700
+}
+.linkbtn:hover{background:var(--card-hover)}
+.linkbtn .hint{font-weight:600;color:var(--muted);font-size:12px}
+
+.searchbar{
+  margin:14px 0;display:flex;gap:10px;flex-wrap:wrap
+}
+.searchbar input{
+  flex:1;min-width:230px;border-radius:14px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);color:var(--text)
+}
+.searchbar .chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  padding:8px 12px;border-radius:999px;background:var(--chip);border:1px solid var(--border);cursor:pointer;color:var(--text);font-weight:600;font-size:13px
+}
+.chip.active{outline:2px solid var(--accent);border-color:transparent}
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:8px
+}
+.card{
+  background:var(--card);border:1px solid var(--border);padding:14px;border-radius:16px;box-shadow:var(--shadow);position:relative;overflow:hidden
+}
+.card:hover{background:var(--card-hover)}
+.card h3{margin:2px 0 4px;font-size:18px}
+.card .series{font-size:12px;color:var(--muted);margin-bottom:8px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;padding:4px 8px;border:1px dashed var(--border);border-radius:999px;color:var(--muted)}
+.card .actions{display:flex;gap:8px;margin-top:10px}
+.small{font-size:12px}
+.hr{height:1px;background:var(--border);margin:10px 0}
+
+footer{
+  margin:18px 0;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap
+}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px}
+.modal{max-width:720px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;box-shadow: var(--shadow);padding:16px}
+.modal h2{margin:0 0 8px}
+.modal .insights{margin:10px 0 0 0;padding-left:18px}
+.modal .insights li{margin:6px 0}
+.modal .head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.close{background:transparent;border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);cursor:pointer}
+.modal .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.modal .row .button{flex:1}
+/* Accessibility */
+.button:focus,.chip:focus,.close:focus,.linkbtn:focus{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:520px){
+  .header{gap:10px}
+  .title h1{font-size:18px}
+}
+</style>
+</head>
+<body>
+<div class="container" id="app" aria-live="polite">
+  <div class="header">
+    <div class="brand">
+      <div class="avatar" aria-hidden="true"><span>🍷</span></div>
+      <div class="title">
+        <h1>Barry — Anime Insights</h1>
+        <p>Link-in-bio hub for quick takes & downloads — JJK, Naruto, Dragon Ball + more.</p>
+      </div>
+    </div>
+    <div class="tools">
+      <button class="button" id="themeBtn" aria-label="Toggle theme">Toggle Theme</button>
+      <span class="badge" id="countBadge">0 items</span>
+    </div>
+  </div>
+
+  <div class="bio">
+    <div style="display:flex;gap:10px;align-items:center">
+      <span class="badge">curated by Barry</span>
+      <span class="badge">fast downloads</span>
+      <span class="badge">no tracking</span>
+    </div>
+    <div class="links" id="socialLinks">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <div class="searchbar" role="search">
+    <input id="q" type="search" placeholder="Search anime or characters (e.g., Gojo, Itachi, Goku)..." aria-label="Search characters" />
+    <div class="chips" id="chips"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="button primary" id="dlFilteredJson">Download Filtered (JSON)</button>
+      <button class="button" id="dlFilteredMd">Download Filtered (Markdown)</button>
+      <button class="button ghost small" id="addBtn" title="Add custom entry">+ Add Entry</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid" aria-label="Characters grid"></div>
+
+  <footer>
+    <div>Tip: Click a card for focused details & one-tap downloads.</div>
+    <div>v1.0 • <span id="totalStats"></span></div>
+  </footer>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal" role="document">
+    <div class="head">
+      <div>
+        <h2 id="modalTitle"></h2>
+        <div class="small" id="modalMeta"></div>
+      </div>
+      <button class="close" id="closeModal" aria-label="Close">Close</button>
+    </div>
+    <div class="hr"></div>
+    <ul class="insights" id="modalInsights"></ul>
+    <div class="row">
+      <button class="button" id="dlCharJson">Download Character (JSON)</button>
+      <button class="button" id="dlCharMd">Download Character (Markdown)</button>
+      <button class="button" id="dlSeriesMd">Download Series (Markdown)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================
+   PROFILE + SOCIALS (edit these)
+   ================================ */
+const PROFILE = {
+  nameDisplay: "Barry",
+  tagline: "Anime insights • quick downloads • clean taste -",
+  socials: [
+    {label:"Instagram", url:"https://instagram.com/barrydecode"},
+    {label:"YouTube", url:"#"},
+    {label:"TikTok", url:"#"},
+    {label:"GitHub", url:"#"}
+  ]
+};
+
+/* ================================
+   DB START — Add/extend here
+   Schema: { series, characters:[{name,tags:[...], insights:[...]}] }
+   Keep insights short & original (no long quotes).
+   ================================ */
+const db = [
+  {
+    series: "Jujutsu Kaisen",
+    characters: [
+      { name:"Satoru Gojo", tags:["OP mentor","Six Eyes","Limitless"],
+        insights:[
+          "Narrative role: ceiling-setter — defines the power cap early.",
+          "Cool detachment hides duty; students humanize him.",
+          "Weakness is moral: being a one-man solution slows systemic change."
+        ]},
+      { name:"Yuji Itadori", tags:["Everyman","Vessel","Self-sacrifice"],
+        insights:[
+          "Built as empathy engine — audience lens into sorcerer cost.",
+          "Strength curve trades technique complexity for grit + teamwork.",
+          "Theme: choosing meaning under borrowed time."
+        ]},
+      { name:"Megumi Fushiguro", tags:["Tactician","Ten Shadows"],
+        insights:[
+          "Power hinges on resource management & risk calculus.",
+          "Carries ‘untapped potential’ trope to pace late arcs.",
+          "Moral axis: save the many, but not at any price."
+        ]},
+      { name:"Nobara Kugisaki", tags:["Precision","Resonance"],
+        insights:[
+          "Damage as geometry — positioning > raw output.",
+          "Style communicates identity: beauty weaponized, not ornamental.",
+          "Team synergy spikes her ceiling beyond solo stats."
+        ]},
+      { name:"Ryomen Sukuna", tags:["Antagonist","Domain Mastery"],
+        insights:[
+          "Charisma by competence — cruelty delivered with surgical rules.",
+          "Antagonist design that pushes skill expression over brute force.",
+          "Fear works because limits are explained, then subverted."
+        ]},
+      { name:"Toji Fushiguro", tags:["Anti-sorcerer","Physical ceiling"],
+        insights:[
+          "Counter-meta build: technique-less vs technique-dependent world.",
+          "Threat design shows how knowledge + tools beat raw talent.",
+          "Tragedy: freedom purchased by burning every bridge."
+        ]}
+    ]
+  },
+  {
+    series: "Naruto",
+    characters: [
+      { name:"Naruto Uzumaki", tags:["Protagonist","Jinchuriki","Talk-no-Jutsu"],
+        insights:[
+          "Wins by converting enemies into stakeholders in peace.",
+          "Shadow clones = parallel processing for growth & tactics.",
+          "Arc payoff: recognition replaces validation hunger."
+        ]},
+      { name:"Sasuke Uchiha", tags:["Rival","Avenger"],
+        insights:[
+          "Identity loop: revenge → isolation → redefinition.",
+          "Power scale tracks with narrowing empathy — then expansion.",
+          "Rivalry as engine for both plot and training arcs."
+        ]},
+      { name:"Sakura Haruno", tags:["Healer","Burst damage"],
+        insights:[
+          "Late bloom design — delayed gratification equals bigger punch.",
+          "Strength reframed: precision + durability + leadership.",
+          "Mentorship shows inheritance of will as literal skill tree."
+        ]},
+      { name:"Kakashi Hatake", tags:["Mentor","Copy Ninja"],
+        insights:[
+          "Competence mellowed by losses — restraint reads as wisdom.",
+          "Leadership: teaching decision-making, not just jutsu.",
+          "Mask = boundary; unmasking moments mark trust milestones."
+        ]},
+      { name:"Itachi Uchiha", tags:["Tragic hero","Genjutsu"],
+        insights:[
+          "Moral gray masterclass: love expressed as self-erasure.",
+          "Power fantasy undercut by terminal constraints.",
+          "Symbolism: crows = multiplicity, secrets, misdirection."
+        ]},
+      { name:"Madara Uchiha", tags:["Big bad","Ideologue"],
+        insights:[
+          "Villain as policy: peace via control — seductive and wrong.",
+          "Scale escalation without chaos: clear rule exposition.",
+          "Legacy antagonism: fights the era as much as the heroes."
+        ]}
+    ]
+  },
+  {
+    series: "Dragon Ball",
+    characters: [
+      { name:"Son Goku", tags:["Protagonist","Saiyan","Transformations"],
+        insights:[
+          "Curiosity as superpower — fights to learn, not just win.",
+          "Forms externalize inner training milestones.",
+          "Optimism weaponized: turns enemies into sparring partners."
+        ]},
+      { name:"Vegeta", tags:["Rival","Pride","Character growth"],
+        insights:[
+          "Redemption via discipline, not apology.",
+          "Ceiling is psychological: pride rerouted, not erased.",
+          "Power-ups map to acceptance of teamwork and family."
+        ]},
+      { name:"Gohan", tags:["Hybrid potential","Scholar-fighter"],
+        insights:[
+          "Peak spikes during value conflicts (peace vs duty).",
+          "Rage unlocks framed as moral line, not cheat key.",
+          "Arc argues balance beats obsession."
+        ]},
+      { name:"Piccolo", tags:["Mentor","Strategist"],
+        insights:[
+          "From enemy to anchor — chosen family theme carrier.",
+          "Utility fighter: buffs, fusions, and battlefield IQ.",
+          "Quiet leadership fills gaps left by glory chasers."
+        ]},
+      { name:"Frieza", tags:["Tyrant","Iconic villain"],
+        insights:[
+          "Evil stays relevant by adapting — new forms, same core.",
+          "Cruelty contrasts with hero playfulness; tone control.",
+          "Symbol of systemic oppression, not just a boss fight."
+        ]},
+      { name:"Trunks", tags:["Time traveler","Blade"],
+        insights:[
+          "Dystopia survivor — urgency gives gravitas to choices.",
+          "Sword is visual thesis: clean cuts, decisive action.",
+          "Hope as timeline tech — change requires risk."
+        ]}
+    ]
+  }
+];
+
+/* ================================
+   RUNTIME
+   ================================ */
+const $ = (sel, root=document)=>root.querySelector(sel);
+const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
+const state = { q:"", series:"All", flat:[], current:null };
+
+function init(){
+  // Theme
+  const savedTheme = localStorage.getItem("theme") || "dark";
+  if(savedTheme==="light") document.body.classList.add("light");
+  $("#themeBtn").addEventListener("click", ()=>{
+    document.body.classList.toggle("light");
+    localStorage.setItem("theme", document.body.classList.contains("light")?"light":"dark");
+  });
+
+  // Socials
+  const links = PROFILE.socials.map(s=>`<a class="linkbtn" href="${s.url}" target="_blank" rel="noopener">${iconFor(s.label)} ${s.label} <span class="hint">↗</span></a>`).join("");
+  $("#socialLinks").innerHTML = links;
+
+  // Build flat list
+  state.flat = flattenDB(db);
+  renderChips();
+  renderGrid();
+  updateStats();
+
+  // Search
+  $("#q").addEventListener("input", e=>{ state.q = e.target.value.trim().toLowerCase(); renderGrid(); });
+
+  // Downloads
+  $("#dlFilteredJson").addEventListener("click", ()=>downloadFiltered("json"));
+  $("#dlFilteredMd").addEventListener("click", ()=>downloadFiltered("md"));
+
+  // Add Entry
+  $("#addBtn").addEventListener("click", addEntryFlow);
+
+  // Modal
+  $("#closeModal").addEventListener("click", closeModal);
+  $("#backdrop").addEventListener("click", (e)=>{ if(e.target.id==="backdrop") closeModal(); });
+  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape") closeModal(); });
+}
+
+function flattenDB(db){
+  const out=[];
+  for(const s of db){
+    for(const c of s.characters){
+      out.push({
+        series:s.series,
+        name:c.name,
+        tags:c.tags||[],
+        insights:c.insights||[]
+      });
+    }
+  }
+  return out.sort((a,b)=> a.series.localeCompare(b.series) || a.name.localeCompare(b.name));
+}
+
+function renderChips(){
+  const seriesList = ["All", ...db.map(s=>s.series)];
+  $("#chips").innerHTML = seriesList.map(s=>`<button class="chip ${state.series===s?'active':''}" data-series="${s}">${s}</button>`).join("");
+  $$("#chips .chip").forEach(ch=>{
+    ch.addEventListener("click", ()=>{
+      state.series = ch.dataset.series;
+      $$("#chips .chip").forEach(x=>x.classList.remove("active"));
+      ch.classList.add("active");
+      renderGrid();
+    });
+  });
+}
+
+function filtered(){
+  return state.flat.filter(item=>{
+    const passSeries = state.series==="All" || item.series===state.series;
+    if(!passSeries) return false;
+    if(!state.q) return true;
+    const hay = `${item.name} ${item.series} ${item.tags.join(" ")} ${item.insights.join(" ")}`.toLowerCase();
+    return hay.includes(state.q);
+  });
+}
+
+function renderGrid(){
+  const list = filtered();
+  $("#grid").innerHTML = list.map(cardHTML).join("") || `<div class="card"><h3>No results</h3><div class="small">Try a different search or series.</div></div>`;
+  $$("#grid .card").forEach(card=>{
+    card.addEventListener("click", (e)=>{
+      // Avoid triggering when clicking a button inside card
+      if(e.target.closest("button")) return;
+      const idx = parseInt(card.dataset.idx,10);
+      openModal(filtered()[idx]);
+    });
+    // Wire the small buttons
+    $(".btn-json", card)?.addEventListener("click", (e)=>{ e.stopPropagation(); const idx=parseInt(card.dataset.idx,10); downloadCharacter(filtered()[idx], "json"); });
+    $(".btn-md", card)?.addEventListener("click", (e)=>{ e.stopPropagation(); const idx=parseInt(card.dataset.idx,10); downloadCharacter(filtered()[idx], "md"); });
+  });
+  $("#countBadge").textContent = `${list.length} item${list.length!==1?'s':''}`;
+}
+
+function cardHTML(item, i){
+  const tags = (item.tags||[]).slice(0,4).map(t=>`<span class="tag">${t}</span>`).join("");
+  return `
+    <div class="card" data-idx="${i}" tabindex="0" role="button" aria-label="Open ${item.name} details">
+      <div class="series">${item.series}</div>
+      <h3>${item.name}</h3>
+      <div class="tags">${tags}</div>
+      <div class="actions">
+        <button class="button small btn-json" title="Download JSON">JSON</button>
+        <button class="button small btn-md" title="Download Markdown">.md</button>
+      </div>
+    </div>
+  `;
+}
+
+function openModal(item){
+  state.current = item;
+  $("#modalTitle").textContent = item.name;
+  $("#modalMeta").textContent = `${item.series} • ${item.tags.join(" • ")}`;
+  $("#modalInsights").innerHTML = item.insights.map(i=>`<li>${i}</li>`).join("");
+  $("#backdrop").style.display = "flex";
+  $("#backdrop").setAttribute("aria-hidden","false");
+
+  $("#dlCharJson").onclick = ()=>downloadCharacter(item, "json");
+  $("#dlCharMd").onclick   = ()=>downloadCharacter(item, "md");
+  $("#dlSeriesMd").onclick = ()=>downloadSeries(item.series, "md");
+}
+function closeModal(){
+  $("#backdrop").style.display = "none";
+  $("#backdrop").setAttribute("aria-hidden","true");
+}
+
+function updateStats(){
+  const totalSeries = db.length;
+  const totalChars = state.flat.length;
+  $("#totalStats").textContent = `${totalSeries} series • ${totalChars} characters`;
+}
+
+/* ================================
+   DOWNLOADS
+   ================================ */
+function downloadCharacter(item, type="json"){
+  if(type==="json"){
+    const payload = JSON.stringify(item, null, 2);
+    saveAs(`${slug(item.name)}_${slug(item.series)}.json`, payload, "application/json");
+  } else {
+    const md = `# ${item.name} — ${item.series}\n\n**Tags:** ${item.tags.join(", ")}\n\n## Insights\n${item.insights.map(x=>`- ${x}`).join("\n")}\n`;
+    saveAs(`${slug(item.name)}_${slug(item.series)}.md`, md, "text/markdown");
+  }
+}
+
+function downloadSeries(series, type="md"){
+  const list = state.flat.filter(x=>x.series===series);
+  const md = `# ${series} — Insights\n\n` + list.map(c=>`## ${c.name}\n\n- Tags: ${c.tags.join(", ")}\n${c.insights.map(x=>`- ${x}`).join("\n")}\n`).join("\n");
+  saveAs(`${slug(series)}_insights.md`, md, "text/markdown");
+}
+
+function downloadFiltered(type="json"){
+  const list = filtered();
+  if(type==="json"){
+    const payload = JSON.stringify(list, null, 2);
+    saveAs(`anime_insights_filtered.json`, payload, "application/json");
+  } else {
+    const groups = groupBy(list, x=>x.series);
+    let md = `# Anime Insights (Filtered)\n\nGenerated for ${PROFILE.nameDisplay}\n\n`;
+    for(const [series, arr] of Object.entries(groups)){
+      md += `\n## ${series}\n`;
+      for(const c of arr){
+        md += `\n### ${c.name}\n- Tags: ${c.tags.join(", ")}\n${c.insights.map(x=>`- ${x}`).join("\n")}\n`;
+      }
+    }
+    saveAs(`anime_insights_filtered.md`, md, "text/markdown");
+  }
+}
+
+function saveAs(filename, content, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 500);
+}
+
+function groupBy(arr, fn){
+  return arr.reduce((acc, x)=>{
+    const k = fn(x);
+    (acc[k] ||= []).push(x);
+    return acc;
+  }, {});
+}
+function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,""); }
+
+/* ================================
+   ADD ENTRY (client-side only)
+   ================================ */
+function addEntryFlow(){
+  const name = prompt("Character name (e.g., Satoru Gojo):");
+  if(!name) return;
+  let series = prompt("Series (e.g., Jujutsu Kaisen):");
+  if(!series) return;
+  const tags = (prompt("Tags (comma separated):")||"").split(",").map(x=>x.trim()).filter(Boolean);
+  const insights = (prompt("Insights (one line each, separated by \\n):")||"").split("\\n").map(x=>x.trim()).filter(Boolean);
+
+  // Persist only in runtime (no server) — export later via Download buttons
+  state.flat.push({name, series, tags, insights});
+  state.flat.sort((a,b)=> a.series.localeCompare(b.series) || a.name.localeCompare(b.name));
+  if(!db.find(s=>s.series===series)){ db.push({series, characters:[]}); renderChips(); }
+  renderGrid(); updateStats();
+  alert("Added! This is saved in memory for this session. Use downloads to export.");
+}
+
+/* ================================
+   Icons
+   ================================ */
+function iconFor(label){
+  const map = {
+    "Instagram": "📸", "YouTube":"▶️", "TikTok":"🎵", "GitHub":"💻",
+    "Website":"🌐", "Email":"✉️"
+  };
+  return `<span aria-hidden="true">${map[label]||"🔗"}</span>`;
+}
+
+init();
+</script>
+</body>
+</html>
